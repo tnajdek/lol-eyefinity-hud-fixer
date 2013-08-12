@@ -3,6 +3,7 @@ from __future__ import division
 import re
 import sys
 import os
+from collections import OrderedDict
 
 # Single screen resolution
 TARGET_RESOLUTION = 1920
@@ -59,7 +60,6 @@ def get_lol_scaled_rect(rect, res_w, res_h):
 # rect must be abs scaled!
 def reanchor_centrally(rect, anchor_src):
 	offset = (RATIO - 1)/2
-
 	new_rect = Rect(
 		Vec2(
 			rect.start.x,
@@ -72,11 +72,9 @@ def reanchor_centrally(rect, anchor_src):
 		)
 	)
 	if(anchor_src.x == 1):
-		# max = MAGIC_VALUE+(TARGET_RESOLUTION/MAGIC_VALUE-1)/2*MAGIC_VALUE
 		new_rect.start.x = rect.start.x + offset
 		new_rect.end.x = rect.end.x + offset
 	elif(anchor_src.x == 0):
-		# min = 0-(TARGET_RESOLUTION/MAGIC_VALUE-1)/2*MAGIC_VALUE
 		new_rect.start.x = rect.start.x - offset
 		new_rect.end.x = rect.end.x - offset
 	elif(anchor_src.x != 0.5):
@@ -85,21 +83,21 @@ def reanchor_centrally(rect, anchor_src):
 	return new_rect
 
 def parse_fragment(fragment):
-	parsed = dict()
+	parsed = OrderedDict() # somehow order seems to matter to LOL
 	lines = fragment.split("\n")
 	for line in lines:
 		line = line.strip(" \x00\r")
-		if(line):
+		if(line and line[0:2] != '//'):
 			key, value = re.match("(\w+):\s*(.*)", line).groups()
 			if(key == 'Rect'):
-				rect_spec = re.match("\s*([\d\.]+),([\d\.]+)[\s\-]+([\d\.]+),([\d\.]+)[\s\/]+(\d+)x(\d+)", value).groups()
+				rect_spec = re.match("\s*([\-\d\.]+),([\-\d\.]+)[\s\-]+([\-\d\.]+),([\-\d\.]+)[\s\/]+(\d+)x(\d+)", value).groups()
 				value = LolRect(
 					Vec2(*[float(x) for x in rect_spec[0:2]]),
 					Vec2(*[float(x) for x in rect_spec[2:4]]),
 					*[int(x) for x in rect_spec[4:6]]
 				)
 			elif(key == 'Anchor'):
-				anchor_spec = re.match("\s*([\d\.]+)[\s,]*([\d\.]+)", value).groups()
+				anchor_spec = re.match("\s*([\-\d\.]+)[\s,]*([\-\d\.]+)", value).groups()
 				value = Vec2(*[float(x) for x in anchor_spec])
 			parsed[key] = value
 	return parsed
@@ -135,11 +133,14 @@ def reanchor_centrally_in_raf(raf):
 	fragments = parse_fragments(raf)
 	for fragment in fragments:
 		if('Rect' in fragment and 'Anchor' in fragment):
-			abs_scaled = get_abs_scaled_rect(fragment['Rect'])
-			reanchored = reanchor_centrally(abs_scaled, fragment['Anchor'])
-			repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
-			fragment['Rect'] = repositioned
-			fragment['Anchor'] = Vec2(0.5, fragment['Anchor'].y)
+			try:
+				abs_scaled = get_abs_scaled_rect(fragment['Rect'])
+				reanchored = reanchor_centrally(abs_scaled, fragment['Anchor'])
+				repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
+				fragment['Rect'] = repositioned
+				fragment['Anchor'] = Vec2(0.5, fragment['Anchor'].y)
+			except NotImplementedError:
+				print "Found something anchored %f. Not supported - leaving untouched." % fragment['Anchor'].x
 	return compile_fragments(fragments)
 
 if __name__ == '__main__':
