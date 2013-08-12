@@ -3,7 +3,7 @@ import unittest
 from hudfixer import (
     Vec2, Rect, LolRect, reanchor_centrally, get_abs_scaled_rect,
     get_lol_scaled_rect, parse_fragment, parse_fragments,
-    compile_fragment, compile_fragments
+    compile_fragment, compile_fragments, reanchor_centrally_in_raf
 )
 
 
@@ -52,8 +52,12 @@ class TestReanchoring(unittest.TestCase):
             UV: 5,5 - 85,358 / 1024x1024\n"
         
     def test_anchor_centrally(self):
-        old_rect = Rect(Vec2(829.44, 576.0), Vec2(1020.16, 763.52))
-        old_rect = get_abs_scaled_rect(old_rect, 1024, 768)
+        old_rect = LolRect(
+            Vec2(829.44, 576.0),
+            Vec2(1020.16, 763.52),
+            1024, 768
+        )
+        old_rect = get_abs_scaled_rect(old_rect)
         reanchored = reanchor_centrally(old_rect, Vec2(1, 1))
         repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
 
@@ -87,11 +91,19 @@ class TestReanchoring(unittest.TestCase):
 
     def test_fragments_writing(self):
         processed = compile_fragments(parse_fragments(self.fragments))
-        self.assertEqual(len(parse_fragment(processed)), len(parse_fragment(self.fragment)))        
+        self.assertEqual(len(parse_fragments(processed)), len(parse_fragments(self.fragments)))        
 
-    def test_fragment_processing(self):
-        pass
-
+    def test_raf_processing(self):
+        result = reanchor_centrally_in_raf(self.fragments)
+        parsed = parse_fragments(result)
+        self.assertIsInstance(parsed[0]['Rect'], LolRect)
+        self.assertAlmostEqual(parsed[0]['Rect'].start.x, 1662.15, places=2)
+        self.assertAlmostEqual(parsed[1]['Rect'].start.x, 1276.8, places=2)
+        self.assertEqual(parsed[0]['Anchor'].x, 0.5)
+        self.assertEqual(parsed[1]['Anchor'].x, 0.5)
+        self.assertEqual(parsed[0]['Anchor'].y, 1)
+        self.assertEqual(parsed[0]['Texture'], 'None')
+        self.assertEqual(parsed[1]['Name'], 'MinimapPillar')
         
 if __name__ == '__main__':
     unittest.main()

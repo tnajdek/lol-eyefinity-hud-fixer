@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import division
 import re
+import sys
+import os
 
 # Single screen resolution
 TARGET_SCREEN_RESOLUTION = 1920
@@ -8,7 +10,7 @@ TARGET_SCREEN_RESOLUTION = 1920
 # Max value LOL will allow vertically from the anchor point
 # e.g. if anchor point is 1,1 and Rect start is 0,0 then
 # rect will be placed MAGIC_VALUE pixels from the right-most
-# value
+# screen edge
 MAGIC_VALUE = 1440
 
 RATIO = TARGET_SCREEN_RESOLUTION / MAGIC_VALUE
@@ -29,15 +31,15 @@ class LolRect(Rect):
 		self.res_w = res_w
 		self.res_h = res_h
 
-def get_abs_scaled_rect(rect, res_w, res_h):
+def get_abs_scaled_rect(rect):
 	return Rect(
 		Vec2(
-			rect.start.x / res_w,
-			rect.start.y / res_h
+			rect.start.x / rect.res_w,
+			rect.start.y / rect.res_h
 		),
 		Vec2(
-			rect.end.x / res_w,
-			rect.end.y / res_h
+			rect.end.x / rect.res_w,
+			rect.end.y / rect.res_h
 		)
 	)
 
@@ -123,5 +125,26 @@ def compile_fragments(fragments):
 	fragments = [compile_fragment(f) for f in fragments]
 	return separator.join(fragments)
 
-def process(fragment):
-	pass
+def reanchor_centrally_in_raf(raf):
+	fragments = parse_fragments(raf)
+	for fragment in fragments:
+		abs_scaled = get_abs_scaled_rect(fragment['Rect'])
+		reanchored = reanchor_centrally(abs_scaled, fragment['Anchor'])
+		repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
+		fragment['Rect'] = repositioned
+		fragment['Anchor'] = Vec2(0.5, fragment['Anchor'].y)
+	return compile_fragments(fragments)
+
+if __name__ == '__main__':
+	os.mkdir('processed')
+    for arg in sys.argv[1:]:
+    	print "Processing %s" % arg
+    	f = open(arg, "r")
+    	raf = f.read()
+    	f.close()
+    	output = reanchor_centrally_in_raf(raf)
+    	f = open(os.path.join('processed', arg), "w")
+    	f.write(output)
+    	f.close()
+
+
