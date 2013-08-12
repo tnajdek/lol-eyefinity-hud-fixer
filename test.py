@@ -57,13 +57,14 @@ class TestReanchoring(unittest.TestCase):
             Vec2(1020.16, 763.52),
             1024, 768
         )
+
         old_rect = get_abs_scaled_rect(old_rect)
         reanchored = reanchor_centrally(old_rect, Vec2(1, 1))
         repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
 
-        self.assertAlmostEqual(repositioned.start.x, 1361, places=0)
+        self.assertAlmostEqual(repositioned.start.x, 1406, places=0)
         self.assertAlmostEqual(repositioned.start.y, 810, places=0)
-        self.assertAlmostEqual(repositioned.end.x, 1674, places=0)
+        self.assertAlmostEqual(repositioned.end.x, 1675, places=0)
         self.assertAlmostEqual(repositioned.end.y, 1074, places=0)
 
     def test_fragment_parsing(self):
@@ -97,8 +98,8 @@ class TestReanchoring(unittest.TestCase):
         result = reanchor_centrally_in_raf(self.fragments)
         parsed = parse_fragments(result)
         self.assertIsInstance(parsed[0]['Rect'], LolRect)
-        self.assertAlmostEqual(parsed[0]['Rect'].start.x, 1662.15, places=2)
-        self.assertAlmostEqual(parsed[1]['Rect'].start.x, 1276.8, places=2)
+        self.assertAlmostEqual(parsed[0]['Rect'].start.x, 1665, places=0)
+        self.assertAlmostEqual(parsed[1]['Rect'].start.x, 1334, places=0)
         self.assertEqual(parsed[0]['Anchor'].x, 0.5)
         self.assertEqual(parsed[1]['Anchor'].x, 0.5)
         self.assertEqual(parsed[0]['Anchor'].y, 1)

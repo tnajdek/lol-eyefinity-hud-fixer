@@ -5,7 +5,7 @@ import sys
 import os
 
 # Single screen resolution
-TARGET_SCREEN_RESOLUTION = 1920
+TARGET_RESOLUTION = 1920
 
 # Max value LOL will allow vertically from the anchor point
 # e.g. if anchor point is 1,1 and Rect start is 0,0 then
@@ -13,7 +13,7 @@ TARGET_SCREEN_RESOLUTION = 1920
 # screen edge
 MAGIC_VALUE = 1440
 
-RATIO = TARGET_SCREEN_RESOLUTION / MAGIC_VALUE
+RATIO = TARGET_RESOLUTION / MAGIC_VALUE
 
 class Vec2(object):
 	def __init__(self, x, y):
@@ -58,21 +58,27 @@ def get_lol_scaled_rect(rect, res_w, res_h):
 
 # rect must be abs scaled!
 def reanchor_centrally(rect, anchor_src):
-	conversion_ratio = 1 + (RATIO - 1)/2
+	offset = (RATIO - 1)/2
 
 	new_rect = Rect(
 		Vec2(
 			rect.start.x,
 			rect.start.y
 		),
+
 		Vec2(
 			rect.end.x,
 			rect.end.y
 		)
 	)
 	if(anchor_src.x == 1):
-		new_rect.start.x = rect.start.x * conversion_ratio
-		new_rect.end.x = rect.end.x * conversion_ratio
+		# max = MAGIC_VALUE+(TARGET_RESOLUTION/MAGIC_VALUE-1)/2*MAGIC_VALUE
+		new_rect.start.x = rect.start.x + offset
+		new_rect.end.x = rect.end.x + offset
+	elif(anchor_src.x == 0):
+		# min = 0-(TARGET_RESOLUTION/MAGIC_VALUE-1)/2*MAGIC_VALUE
+		new_rect.start.x = rect.start.x - offset
+		new_rect.end.x = rect.end.x - offset
 	elif(anchor_src.x != 0.5):
 		raise NotImplementedError()
 
