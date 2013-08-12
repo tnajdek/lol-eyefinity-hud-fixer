@@ -82,7 +82,7 @@ def parse_fragment(fragment):
 	parsed = dict()
 	lines = fragment.split("\n")
 	for line in lines:
-		line = line.strip()
+		line = line.strip(" \x00\r")
 		if(line):
 			key, value = re.match("(\w+):\s*(.*)", line).groups()
 			if(key == 'Rect'):
@@ -128,23 +128,25 @@ def compile_fragments(fragments):
 def reanchor_centrally_in_raf(raf):
 	fragments = parse_fragments(raf)
 	for fragment in fragments:
-		abs_scaled = get_abs_scaled_rect(fragment['Rect'])
-		reanchored = reanchor_centrally(abs_scaled, fragment['Anchor'])
-		repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
-		fragment['Rect'] = repositioned
-		fragment['Anchor'] = Vec2(0.5, fragment['Anchor'].y)
+		if('Rect' in fragment and 'Anchor' in fragment):
+			abs_scaled = get_abs_scaled_rect(fragment['Rect'])
+			reanchored = reanchor_centrally(abs_scaled, fragment['Anchor'])
+			repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
+			fragment['Rect'] = repositioned
+			fragment['Anchor'] = Vec2(0.5, fragment['Anchor'].y)
 	return compile_fragments(fragments)
 
 if __name__ == '__main__':
-	os.mkdir('processed')
-    for arg in sys.argv[1:]:
-    	print "Processing %s" % arg
-    	f = open(arg, "r")
-    	raf = f.read()
-    	f.close()
-    	output = reanchor_centrally_in_raf(raf)
-    	f = open(os.path.join('processed', arg), "w")
-    	f.write(output)
-    	f.close()
+	os.path.isdir('processed') or os.mkdir('processed')
+	for arg in sys.argv[1:]:
+		filename = os.path.basename(arg)
+		print "Processing %s" % filename
+		f = open(arg, "r")
+		raf = f.read()
+		f.close()
+		output = reanchor_centrally_in_raf(raf)
+		f = open(os.path.join('processed', filename), "w")
+		f.write(output)
+		f.close()
 
 
