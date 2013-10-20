@@ -3,7 +3,9 @@ from __future__ import division
 import re
 import sys
 import os
+from glob import glob
 from collections import OrderedDict
+
 
 # Single screen resolution
 TARGET_RESOLUTION = 1920
@@ -145,7 +147,7 @@ def reanchor_centrally_in_raf(raf):
 
 if __name__ == '__main__':
 	os.path.isdir('processed') or os.mkdir('processed')
-	for arg in sys.argv[1:]:
+	for arg in glob(sys.argv[1]):
 		filename = os.path.basename(arg)
 		print "Processing %s" % filename
 		f = open(arg, "r")
