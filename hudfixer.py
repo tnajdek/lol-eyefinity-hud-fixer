@@ -126,24 +126,43 @@ def compile_fragment(fragment_dict):
 		fragment = fragment + "%s: %s\n" % (key, value)
 	return fragment
 
-def compile_fragments(fragments):
-	separator = "//////////////////////////////////////////\n"
-	fragments = [compile_fragment(f) for f in fragments]
-	return separator.join(fragments)
+def compile_fragments(fragments, desired_length):
+	total_fragments_length = 0;
+	compiled_fragments = [compile_fragment(f) for f in fragments]
+
+	for compiled_fragment in compiled_fragments:
+		total_fragments_length = total_fragments_length + len(compiled_fragment)
+
+	length_diff = desired_length - total_fragments_length
+	separators_count = len(fragments)-1
+	if(length_diff<separators_count*2):
+		raise Exception("Unable to compensate")
+
+	separator = "/" * (int(length_diff/separators_count)-1)
+	separator = separator + "\n"
+	out = separator.join(compiled_fragments)
+
+	missing_bytes = desired_length - len(out)
+
+	out = out + ("/" * missing_bytes)
+	
+	assert len(out) == desired_length
+	return out
 
 def reanchor_centrally_in_raf(raf):
+	desired_length = len(raf)
 	fragments = parse_fragments(raf)
 	for fragment in fragments:
 		if('Rect' in fragment and 'Anchor' in fragment):
 			try:
 				abs_scaled = get_abs_scaled_rect(fragment['Rect'])
 				reanchored = reanchor_centrally(abs_scaled, fragment['Anchor'])
-				repositioned = get_lol_scaled_rect(reanchored, 1440, 1080)
+				repositioned = get_lol_scaled_rect(reanchored, 1024, 768)
 				fragment['Rect'] = repositioned
 				fragment['Anchor'] = Vec2(0.5, fragment['Anchor'].y)
 			except NotImplementedError:
 				print "Found something anchored %f. Not supported - leaving untouched." % fragment['Anchor'].x
-	return compile_fragments(fragments)
+	return compile_fragments(fragments, desired_length)
 
 if __name__ == '__main__':
 	os.path.isdir('processed') or os.mkdir('processed')
