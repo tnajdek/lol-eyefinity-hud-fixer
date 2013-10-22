@@ -86,7 +86,7 @@ def reanchor_centrally(rect, anchor_src):
 
 def parse_fragment(fragment):
 	parsed = OrderedDict() # somehow order seems to matter to LOL
-	lines = fragment.split("\n")
+	lines = fragment.split(os.linesep)
 	for line in lines:
 		line = line.strip(" \x00\r")
 		if(line and line[0:2] != '//'):
@@ -123,7 +123,7 @@ def compile_fragment(fragment_dict):
 			)
 		if(key == "Anchor"):
 			value = "%.2f,%.2f" % (value.x, value.y)
-		fragment = fragment + "%s: %s\n" % (key, value)
+		fragment = fragment + "%s: %s" % (key, value) + os.linesep
 	return fragment
 
 def compile_fragments(fragments, desired_length):
@@ -138,8 +138,8 @@ def compile_fragments(fragments, desired_length):
 	if(length_diff<separators_count*2):
 		raise Exception("Unable to compensate")
 
-	separator = "/" * (int(length_diff/separators_count)-1)
-	separator = separator + "\n"
+	separator = "/" * (int(length_diff/separators_count)-len(os.linesep))
+	separator = separator + os.linesep
 	out = separator.join(compiled_fragments)
 
 	missing_bytes = desired_length - len(out)
@@ -169,11 +169,11 @@ if __name__ == '__main__':
 	for arg in glob(sys.argv[1]):
 		filename = os.path.basename(arg)
 		print "Processing %s" % filename
-		f = open(arg, "r")
+		f = open(arg, "rb")
 		raf = f.read()
 		f.close()
 		output = reanchor_centrally_in_raf(raf)
-		f = open(os.path.join('processed', filename), "w")
+		f = open(os.path.join('processed', filename), "wb")
 		f.write(output)
 		f.close()
 
