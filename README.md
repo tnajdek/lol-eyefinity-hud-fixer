@@ -14,22 +14,21 @@ Simplified Guide
 ------------------
 
 0. Backup your LOL folder in case something goes wrong.
-1. You will need a [Raf Manager](http://www.itzwarty.com/raf/)
-2. Using Raf Manager extract all folders with RAF path `Menu/HUD/Hud2012/Elements` from all versions that contain in (use built-in search function to find term 'Hud2012' and extract underlying 'Elements' folder). I suspect extracting from the oldest version to the most recent one make sense in case Riot introduced a newer version of any of the files at some point
-3. Raf Manager will build a full directory structure, something like `DATA/Menu/HUD/Hud2012/Elements`
-4. Execute the HUD fixer (default will work for 3x1920 screen setup, see section Configuration below)
+1. You will need a [Rafiki](https://github.com/tnajdek/rafiki)
+2. Using Rafiki extract all folders with RAF path **DATA/Menu/HUD/Elements** (see README.md in Rafiki repo for details how to do it)
+3. Execute the HUD fixer
 
-        hudfixer.py path_to_mod/DATA/Menu/HUD/Hud2012/Elements/*
+        hudfixer.py -i -r 1920 -s path_to_extracted_files
 
-5. HUD fixer will create folder `processed` where modified *.ini files will be placed
-6. Copy all files from `processed` folder to `path_to_mod/DATA/Menu/HUD/Hud2012/Elements/` overrding existing files
-7. Use folder `path_to_mod` as a mod in Raf Manager (you can just drag-n-drop the folder and give a mod a name). Remember to enable it and to run file->pack to apply the mod.
+5. HUD fixer will convert extracted files inline, changing values so that all HUD elements are located on the center screen
+6. Use Rafiki again to pack modified files back to **raf**
+7. Copy created raf files to **$LOL_PATH/Contents/LoL/RADS/projects/lol_game_client/filearchives/** (where $LOL_PATH represents path to Leauge of Legends)
 8. That's it, start the game and you should see your HUD realigned on the central monitor. If it's slightly mispositioned go to LOL options and choose 'reset HUD' option, for details see `known issues` below
 
 Configuration
 -------------
 
-I've only tested this on a 3-screen eyefinity with total resolution of 1920x1080, however this should work with different setups with little tweak. If your screens has different resolution thant 1920 you can edit `hudfxier.py` and change the value of `TARGET_RESOLUTION` in the top section of the file. This **might** work, let me know!
+I've only tested this on a 3-screen eyefinity with total resolution of 1920x1080, however this should work with different setups such as 5 or 7 screens side-by-side. For different screen resolutions modify the value of -r argument.
 
 Known Issues
 ------------
