@@ -58,12 +58,15 @@ if(args.inline):
 else:
 	if(not args.out_path):
 		args.out_path = "extracted"
+	if(not os.path.isabs(args.out_path)):
+		args.out_path = os.path.join(SCRIPT_ROOT, args.out_path)
+
 	print("Converted files will be stored in \"%s\"" % os.path.join(SCRIPT_ROOT, args.out_path))
 
 for filename in os.listdir(hud_elements_path):
 	filepath = os.path.join(hud_elements_path, filename)
 	if os.path.isfile(filepath) and fnmatch.fnmatch(filename, '*.ini'):
-		print "Processing %s" % filepath
+		print("Processing %s" % filepath)
 		f = open(filepath, "rb")
 		raf = f.read()
 		f.close()
